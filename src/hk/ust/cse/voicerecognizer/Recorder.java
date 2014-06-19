@@ -19,7 +19,7 @@ public class Recorder {
 	private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
 	private static final String AUDIO_RECORDER_TEMP_FILE = "record_temp.raw";
 	private static final int RECORDER_SAMPLERATE = 8000;
-	private static final int RECORDER_CHANNELS = AudioFormat.CHANNEL_IN_STEREO;
+	private static final int RECORDER_CHANNELS = AudioFormat.CHANNEL_CONFIGURATION_MONO;
 
 	private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
 
@@ -34,8 +34,10 @@ public class Recorder {
 				AudioFormat.CHANNEL_CONFIGURATION_MONO,
 				AudioFormat.ENCODING_PCM_16BIT);
 	}
-
-	private String getFilename() {
+	public String getSaveFilePath(){
+		return getFileName();
+	}
+	private String getFileName() {
 		String filepath = Environment.getExternalStorageDirectory().getPath();
 		File file = new File(filepath, AUDIO_RECORDER_FOLDER);
 
@@ -43,7 +45,8 @@ public class Recorder {
 			file.mkdirs();
 		}
 
-		return (file.getAbsolutePath() + "/" + System.currentTimeMillis() + AUDIO_RECORDER_FILE_EXT_WAV);
+//		return (file.getAbsolutePath() + "/" + System.currentTimeMillis() + AUDIO_RECORDER_FILE_EXT_WAV);
+		return (file.getAbsolutePath() + "/lastRecord" + AUDIO_RECORDER_FILE_EXT_WAV);
 	}
 
 	private String getTempFilename() {
@@ -119,7 +122,7 @@ public class Recorder {
 		}
 	}
 
-	private void stopRecording() {
+	public void stopRecording() {
 		if (null != recorder) {
 			isRecording = false;
 
@@ -132,7 +135,7 @@ public class Recorder {
 			recordingThread = null;
 		}
 
-		copyWaveFile(getTempFilename(), getFilename());
+		copyWaveFile(getTempFilename(), getFileName());
 		deleteTempFile();
 	}
 
