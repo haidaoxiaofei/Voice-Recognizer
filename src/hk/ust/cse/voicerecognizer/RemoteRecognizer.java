@@ -9,7 +9,9 @@ import java.nio.charset.Charset;
 import android.os.AsyncTask;
 
 public class RemoteRecognizer {
-	private static String server = "http://gmission-asia.cloudapp.net/voice/index.php/welcome/recognize";
+//	private static String server = "http://gmission-asia.cloudapp.net/voice/index.php/welcome/recognize";
+	private static String server = "http://gmission-asia.cloudapp.net/voiceSimple/index.php";
+
 	public ResultListener listener;
 	
 	

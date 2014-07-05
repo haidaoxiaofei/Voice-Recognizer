@@ -1,30 +1,31 @@
 package hk.ust.cse.voicerecognizer;
 
-import hk.ust.cse.utils.AppLog;
+import android.media.AmrInputStream;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
+import android.os.Environment;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import android.media.AudioFormat;
-import android.media.AudioRecord;
-import android.media.MediaRecorder;
-import android.os.Environment;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class Recorder {
 	private static final int RECORDER_BPP = 16;
 	private static final String AUDIO_RECORDER_FILE_EXT_WAV = ".wav";
-	private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
+	private static final String AUDIO_RECORDER_FOLDER = "gmission_data";
 	private static final String AUDIO_RECORDER_TEMP_FILE = "record_temp.raw";
 	private static final int RECORDER_SAMPLERATE = 8000;
 	private static final int RECORDER_CHANNELS = AudioFormat.CHANNEL_CONFIGURATION_MONO;
 
 	private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
-
+    private static String UID = "";
 	private AudioRecord recorder = null;
-	private int bufferSize = 0;
+	private static int bufferSize = 0;
 	private Thread recordingThread = null;
 	private boolean isRecording = false;
 
@@ -35,7 +36,7 @@ public class Recorder {
 				AudioFormat.ENCODING_PCM_16BIT);
 	}
 	public String getSaveFilePath(){
-		return getFileName();
+		return getFileName().replace("wav","amr");
 	}
 	private String getFileName() {
 		String filepath = Environment.getExternalStorageDirectory().getPath();
@@ -46,9 +47,11 @@ public class Recorder {
 		}
 
 //		return (file.getAbsolutePath() + "/" + System.currentTimeMillis() + AUDIO_RECORDER_FILE_EXT_WAV);
-		return (file.getAbsolutePath() + "/lastRecord" + AUDIO_RECORDER_FILE_EXT_WAV);
+		return (file.getAbsolutePath() + "/lastRecord" + UID + AUDIO_RECORDER_FILE_EXT_WAV);
 	}
-
+    public void setUID(String uid){
+        UID = uid.replace(':','_');
+    }
 	private String getTempFilename() {
 		String filepath = Environment.getExternalStorageDirectory().getPath();
 		File file = new File(filepath, AUDIO_RECORDER_FOLDER);
@@ -162,7 +165,6 @@ public class Recorder {
 			totalAudioLen = in.getChannel().size();
 			totalDataLen = totalAudioLen + 36;
 
-			AppLog.logString("File size: " + totalDataLen);
 
 			WriteWaveFileHeader(out, totalAudioLen, totalDataLen,
 					longSampleRate, channels, byteRate);
@@ -178,7 +180,44 @@ public class Recorder {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+        wavConvertToAmr(outFilename, outFilename.replace("wav","amr"));
 	}
+
+    private void wavConvertToAmr(String wavFilename, String amrFilename){
+        InputStream inStream;
+
+        try {
+            inStream = new FileInputStream(wavFilename);
+            AmrInputStream aStream = new AmrInputStream(inStream);
+
+            File file = new File(amrFilename);
+
+            OutputStream out = null;
+            file.createNewFile();
+            out = new FileOutputStream(file);
+            out.write(0x23);
+            out.write(0x21);
+            out.write(0x41);
+            out.write(0x4D);
+            out.write(0x52);
+            out.write(0x0A);
+
+            byte[] x = new byte[1024];
+            int len;
+            while ((len=aStream.read(x)) > 0) {
+                out.write(x,0,len);
+            }
+
+            out.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
 
 	private void WriteWaveFileHeader(FileOutputStream out, long totalAudioLen,
 			long totalDataLen, long longSampleRate, int channels, long byteRate)
