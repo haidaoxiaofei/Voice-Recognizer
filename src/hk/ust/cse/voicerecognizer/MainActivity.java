@@ -2,6 +2,8 @@ package hk.ust.cse.voicerecognizer;
 
 import hk.ust.cse.utils.AppLog;
 import android.app.Activity;
+import android.content.Context;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +15,9 @@ public class MainActivity extends Activity implements ResultListener {
 	private Recorder recorder = new Recorder();
 	private RemoteRecognizer recognizer = new RemoteRecognizer(this);
 	private TextView text;
+	private long startTime = 0;
+	private long endTime = 0;
+	private long recognizeTime = 0;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -22,6 +27,16 @@ public class MainActivity extends Activity implements ResultListener {
 		setButtonHandlers();
 		enableButtons(false);
 		text = (TextView) findViewById(R.id.MessageText);
+		recorder.setUID(getMacAddress());
+	}
+
+	public String getMacAddress() {
+		WifiManager wimanager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+		String macAddress = wimanager.getConnectionInfo().getMacAddress();
+		if (macAddress == null) {
+			macAddress = "Device don't have mac address or wi-fi is disabled";
+		}
+		return macAddress;
 	}
 
 	private void setButtonHandlers() {
@@ -62,7 +77,9 @@ public class MainActivity extends Activity implements ResultListener {
 				AppLog.logString("Start Recording");
 
 				enableButtons(false);
+				startTime = System.currentTimeMillis();
 				stopRecording();
+				endTime = System.currentTimeMillis();
 				recognizer.requestServer(recorder.getSaveFilePath());
 				break;
 			}
@@ -72,6 +89,8 @@ public class MainActivity extends Activity implements ResultListener {
 
 	@Override
 	public void receiveResult(String result) {
-		text.setText(result);
+		recognizeTime = System.currentTimeMillis();
+		text.setText(result + ";" + (endTime - startTime) + ";"
+				+ (recognizeTime - endTime));
 	}
 }

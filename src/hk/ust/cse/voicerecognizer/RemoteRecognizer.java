@@ -10,8 +10,8 @@ import android.os.AsyncTask;
 
 public class RemoteRecognizer {
 //	private static String server = "http://gmission-asia.cloudapp.net/voice/index.php/welcome/recognize";
-	private static String server = "http://gmission-asia.cloudapp.net/voiceSimple/index.php";
-
+//	private static String server = "http://gmission-asia.cloudapp.net/voiceSimple/index.php";
+	private static String server = "http://gmission.chinacloudapp.cn/voiceSimple/index.php";
 	public ResultListener listener;
 	
 	
